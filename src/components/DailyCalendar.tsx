@@ -1,8 +1,8 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { AppointmentBlock } from './AppointmentBlock';
+import { AppointmentBlock, Appointment } from './AppointmentBlock';
 import { getAppointmentsForUser } from '@/data/mockData';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface DailyCalendarProps {
   selectedUser: string;
@@ -11,6 +11,8 @@ interface DailyCalendarProps {
 export const DailyCalendar: React.FC<DailyCalendarProps> = ({ selectedUser }) => {
   const today = new Date();
   const appointments = getAppointmentsForUser(selectedUser);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   // Generate time slots from 8 AM to 8 PM
   const timeSlots = [];
@@ -32,8 +34,16 @@ export const DailyCalendar: React.FC<DailyCalendarProps> = ({ selectedUser }) =>
     });
   };
 
+  // Calculate position for the green line
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const startMinutes = 8 * 60;
+  const endMinutes = 20 * 60;
+  const percent = ((nowMinutes - startMinutes) / (endMinutes - startMinutes)) * 100;
+  const showGreenLine = nowMinutes >= startMinutes && nowMinutes <= endMinutes;
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 relative">
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-xl font-semibold text-gray-900">
           {format(today, 'EEEE, MMM d, yyyy')}
@@ -41,7 +51,14 @@ export const DailyCalendar: React.FC<DailyCalendarProps> = ({ selectedUser }) =>
         <p className="text-sm text-gray-500">Today's Schedule</p>
       </div>
       
-      <div className="p-4">
+      <div className="p-4 relative">
+        {/* Green line for current time */}
+        {showGreenLine && (
+          <div
+            className="absolute left-16 right-0 h-0.5 bg-green-500 z-10"
+            style={{ top: `calc(${percent}% )` }}
+          />
+        )}
         <div className="space-y-2">
           {timeSlots.map((time, index) => {
             const appointment = getAppointmentForTime(time);
@@ -57,13 +74,56 @@ export const DailyCalendar: React.FC<DailyCalendarProps> = ({ selectedUser }) =>
                     <div className="absolute inset-x-0 top-0 border-t border-gray-100"></div>
                   )}
                   {appointment && time === appointment.startTime && (
-                    <AppointmentBlock appointment={appointment} />
+                    <AppointmentBlock
+                      appointment={appointment}
+                      onClick={() => {
+                        setSelectedAppointment(appointment);
+                        setDialogOpen(true);
+                      }}
+                    />
                   )}
                 </div>
               </div>
             );
           })}
         </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent>
+            {selectedAppointment && (
+              <div className="p-2">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-lg font-semibold">{selectedAppointment.customer || selectedAppointment.title}</span>
+                  {selectedAppointment.priority === 'high' && (
+                    <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">Hard Block</span>
+                  )}
+                  <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">Upcoming</span>
+                </div>
+                <div className="flex items-center mb-2 text-gray-700">
+                  <span className="mr-2">🕒</span>
+                  <span>{selectedAppointment.startTime} AM - {selectedAppointment.endTime} AM</span>
+                </div>
+                <div className="flex items-center mb-2 text-gray-700">
+                  <span className="mr-2">👤</span>
+                  <span>Technical Support</span>
+                </div>
+                <div className="flex items-center mb-2 text-gray-700">
+                  <span className="mr-2">📍</span>
+                  <span>Tech Counter</span>
+                </div>
+                <div className="mb-2">
+                  <span className="font-semibold">Notes</span>
+                  <div className="text-gray-600 text-sm mt-1">{selectedAppointment.description || 'No notes.'}</div>
+                </div>
+                <button
+                  className="w-full mt-4 border border-gray-300 rounded-lg py-2 text-gray-800 font-medium hover:bg-gray-100 transition"
+                  onClick={() => setDialogOpen(false)}
+                >
+                  Return to Calendar
+                </button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

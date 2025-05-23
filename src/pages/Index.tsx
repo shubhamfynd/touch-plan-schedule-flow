@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Header } from '@/components/Header';
 import { DailyCalendar } from '@/components/DailyCalendar';
@@ -16,7 +15,6 @@ const Index = () => {
       <div className="flex-1 px-4 py-4 pb-20">
         <UserSelector selectedUser={selectedUser} onUserChange={setSelectedUser} />
         <DailyCalendar selectedUser={selectedUser} />
-        <QuickActions />
       </div>
       
       <BottomNavigation />
