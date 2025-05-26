@@ -91,6 +91,15 @@ export const DailyCalendar: React.FC<DailyCalendarProps> = ({ selectedUser }) =>
           <DialogContent>
             {selectedAppointment && (
               <div className="p-2">
+                {/* Back arrow at the top left */}
+                <button
+                  className="absolute left-4 top-4 text-gray-500 hover:text-gray-800 focus:outline-none"
+                  onClick={() => setDialogOpen(false)}
+                  aria-label="Back"
+                  style={{ zIndex: 10 }}
+                >
+                  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                </button>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-lg font-semibold">{selectedAppointment.customer || selectedAppointment.title}</span>
                   {selectedAppointment.priority === 'high' && (
@@ -114,12 +123,14 @@ export const DailyCalendar: React.FC<DailyCalendarProps> = ({ selectedUser }) =>
                   <span className="font-semibold">Notes</span>
                   <div className="text-gray-600 text-sm mt-1">{selectedAppointment.description || 'No notes.'}</div>
                 </div>
-                <button
-                  className="w-full mt-4 border border-gray-300 rounded-lg py-2 text-gray-800 font-medium hover:bg-gray-100 transition"
-                  onClick={() => setDialogOpen(false)}
-                >
-                  Return to Calendar
-                </button>
+                {selectedAppointment.type === 'customer' && (
+                  <button
+                    className="w-full mb-2 border border-blue-300 rounded-lg py-2 text-blue-700 font-medium hover:bg-blue-50 transition"
+                    onClick={() => {/* handle view customer profile */}}
+                  >
+                    View Customer Profile
+                  </button>
+                )}
               </div>
             )}
           </DialogContent>
